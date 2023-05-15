@@ -4,14 +4,14 @@ import styled from "styled-components";
 import uuid from "uuid4";
 import {DragDropContext, Droppable, Draggable} from "react-beautiful-dnd";
 
-// Tool<>Form 정렬 : 세로
+// Tool<>Form
 const ToolFormContainer = styled.div`
     display: flex;
     flex-direction:row;
     padding: 0.5rem;
     width: min-content;
 `;
-// tool 정렬 : 세로
+// tool
 const ToolContainer = styled.div`
     display: flex;
     flex-direction:column;
@@ -163,6 +163,7 @@ const model = {
             ]
         },
         {
+            index:13,
             id: uuid(),
             content: 'section3',
             layouts: [
@@ -195,7 +196,7 @@ const model = {
     ]
 };
 
-function ControlPanel() {
+function ControlPanel3() {
     // console.log('[ControlPanel3] START');
     // console.log('[ControlPanel3] model', model);
 
@@ -242,7 +243,7 @@ function ControlPanel() {
 
         let flag = false;
         for( let n=0 ; n<model.sections.length ; n++ ){
-            if(flag)break;
+            if(flag) break;
 
             for( let m=0 ; m<model.sections[n].layouts.length ; m++){
                 if(model.sections[n].layouts[m].id === destination.droppableId){
@@ -262,7 +263,8 @@ function ControlPanel() {
         console.log('[MoveSection] START');
         const { source, destination } = result;
 
-        const sourceSectionClone = Array.from(model.sections)[source.index];
+        //const sourceSectionClone = Array.from(model.sections)[source.index];
+        const sourceSectionClone = model.sections[source.index];
 
         model.sections
             .splice(source.index, 1);
@@ -286,7 +288,7 @@ function ControlPanel() {
 
                 for( let m=0 ; m<model.sections[n].layouts.length ; m++){
                     if(model.sections[n].layouts[m].id === source.droppableId){
-                        const sourceControlClone1 = Array.from(model.sections[n].layouts[m].controls)[source.index];
+                        const sourceControlClone1 = model.sections[n].layouts[m].controls[source.index];
                         model.sections[n].layouts[m].controls
                             .splice(source.index, 1);
                         model.sections[n].layouts[m].controls
@@ -429,10 +431,10 @@ function ControlPanel() {
                                                         isDragging={snapshot.isDragging}
                                                         style={provided.draggableProps.style}
                                                     >
-                                                        [{tool.content}]<br/>[{tool.id.substring(0,3) + '..'}]
+                                                        [{toolIndex}][{tool.content}]<br/>[{tool.id.substring(0,3) + '..'}]
                                                     </Tool>
                                                     {snapshot.isDragging && (
-                                                        <ToolClone>[{tool.content}]<br/>[{tool.id.substring(0,3) + '..'}]</ToolClone>
+                                                        <ToolClone>[{toolIndex}][{tool.content}]<br/>[{tool.id.substring(0,3) + '..'}]</ToolClone>
                                                     )}
                                                 </Fragment>
                                             )}
@@ -456,7 +458,7 @@ function ControlPanel() {
                             >
                                 {model.formName}
                                 {model.sections.map((section, sectionIndex) => {
-                                    // console.log('[model.sections.map()] section', section);
+                                    console.log('[model.sections.map()] section', section);
 
                                     return (
                                         <Fragment key={section.id} >
@@ -472,7 +474,8 @@ function ControlPanel() {
                                                         isDragging={snapshot.isDragging}
                                                         style={provided.draggableProps.style}
                                                     >
-                                                        [{section.content}]<br/>[{section.id.substring(0,4) + '..'}]
+                                                        [{sectionIndex}][{section.content}]<br/>[{section.id.substring(0,4) + '..'}]
+
                                                         {section.layouts.map((layout, layoutIndex) => {
                                                             // console.log('[section.layouts.map()] layout', layout);
 
@@ -490,12 +493,12 @@ function ControlPanel() {
                                                                             ref={provided.innerRef}
                                                                             isDraggingOver={snapshot.isDraggingOver}
                                                                         >
-                                                                            [{layout.content}]<br/>[{layout.id.substring(0, 4) + '..'}]
+                                                                            [{layoutIndex}][{layout.content}]<br/>[{layout.id.substring(0, 4) + '..'}]
                                                                             {layout.controls.map((control, controlIndex) => {
                                                                                 // console.log('[layout.controls.map()] control', control);
 
                                                                                 return(
-                                                                                    <Fragment key={control.id}>
+                                                                                    <Fragment key={controlIndex}>
                                                                                         <Draggable
                                                                                             index={controlIndex}
                                                                                             draggableId={control.id}
@@ -508,7 +511,7 @@ function ControlPanel() {
                                                                                                     isDragging={snapshot.isDragging}
                                                                                                     style={provided.draggableProps.style}
                                                                                                 >
-                                                                                                    [{control.content}]<br/>[{control.id.substring(0, 4) + '..'}]
+                                                                                                    [{controlIndex}][{control.content}]<br/>[{control.id.substring(0, 4) + '..'}]
                                                                                                 </Control>
                                                                                             )}
                                                                                         </Draggable>
@@ -537,4 +540,8 @@ function ControlPanel() {
     );
 }
 
-export default ControlPanel;
+export default ControlPanel3;
+
+
+
+
