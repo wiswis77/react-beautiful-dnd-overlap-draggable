@@ -1,9 +1,10 @@
-import React, {Fragment, useState} from 'react';
+import React, {Fragment, useState, useCallback} from 'react';
 import styled from "styled-components";
 
 import uuid from "uuid4";
 import {DragDropContext, Droppable, Draggable} from "react-beautiful-dnd";
 // import {DragDropContext, Droppable, Draggable} from '@hello-pangea/dnd';
+import useForceUpdate from "use-force-update";
 
 // Tool<>Form
 const ToolFormContainer = styled.div`
@@ -72,19 +73,35 @@ const model = {
     tools: [
         {
             id: uuid(),
+            content: 'tool0',
+        },
+        {
+            id: uuid(),
             content: 'tool1',
         },
         {
             id: uuid(),
             content: 'tool2',
-        },
-        {
-            id: uuid(),
-            content: 'tool3',
         }
     ],
     formName: 'form1',
     sections: [
+        {
+            id: uuid(),
+            content: 'section0',
+            layouts: [
+                {
+                    id: uuid(),
+                    content: 'layout0',
+                    controls: [
+                        {
+                            id: uuid(),
+                            content: 'control0'
+                        }
+                    ]
+                }
+            ]
+        },
         {
             id: uuid(),
             content: 'section1',
@@ -96,46 +113,26 @@ const model = {
                         {
                             id: uuid(),
                             content: 'control1'
+                        },
+                        {
+                            id: uuid(),
+                            content: 'control2'
                         }
                     ]
-                }
-            ]
-        },
-        {
-            id: uuid(),
-            content: 'section2',
-            layouts: [
+                },
                 {
                     id: uuid(),
                     content: 'layout2',
                     controls: [
                         {
                             id: uuid(),
-                            content: 'control2'
-                        },
-                        {
-                            id: uuid(),
                             content: 'control3'
-                        }
+                        },
                     ]
                 },
                 {
                     id: uuid(),
                     content: 'layout3',
-                    controls: [
-                        {
-                            id: uuid(),
-                            content: 'control4'
-                        },
-                        {
-                            id: uuid(),
-                            content: 'control5'
-                        }
-                    ]
-                },
-                {
-                    id: uuid(),
-                    content: 'layout4',
                     controls: [
                         {
                             id: uuid(),
@@ -154,10 +151,23 @@ const model = {
             ]
         },
         {
-            index:13,
             id: uuid(),
-            content: 'section3',
+            content: 'section2',
             layouts: [
+                {
+                    id: uuid(),
+                    content: 'layout4',
+                    controls: [
+                        {
+                            id: uuid(),
+                            content: 'control7'
+                        },
+                        {
+                            id: uuid(),
+                            content: 'control8'
+                        }
+                    ]
+                },
                 {
                     id: uuid(),
                     content: 'layout5',
@@ -165,20 +175,6 @@ const model = {
                         {
                             id: uuid(),
                             content: 'control9'
-                        },
-                        {
-                            id: uuid(),
-                            content: 'control10'
-                        }
-                    ]
-                },
-                {
-                    id: uuid(),
-                    content: 'layout6',
-                    controls: [
-                        {
-                            id: uuid(),
-                            content: 'control11'
                         }
                     ]
                 }
@@ -194,24 +190,17 @@ function ControlPanel3() {
     const [dropModeSection, setDropModeSection] = useState(false);
     const [dropModeLayout,  setDropModeLayout]  = useState(false);
 
-    function GetDropMode(type){
-        if(type === 'section')
-            return dropModeSection;
-        else if(type === 'layout')
-            return dropModeLayout;
-    }
-
     const CopySection = (result) => {
         console.log('[CopySection] START');
         const { source, destination } = result;
 
         const sourceSectionClone = {
             id: '',
-            content: 'section' + (source.index+1) + 'Temp',
+            content: 'section' + source.index + 'Temp',
             layouts: [
                 {
                     id: '',
-                    content: 'layout' + (source.index+1) + 'Temp',
+                    content: 'layout' + source.index + 'Temp',
                     controls: [
                     ]
                 }
@@ -233,7 +222,7 @@ function ControlPanel3() {
 
         const sourceControlClone = {
             id: '',
-            content: 'control' + (source.index+1) + 'Temp',
+            content: 'control' + source.index + 'Temp',
         };
         sourceControlClone.id = uuid();
 
@@ -341,6 +330,45 @@ function ControlPanel3() {
         };
     };
 
+    const forceUpdate = useForceUpdate();
+
+    const AddSection = (e, index) => {
+        // console.log('[AddSection] START');
+        // console.log('[AddSection] index', index);
+
+        let sourceSectionClone = {
+            id: '',
+            content: 'section' + index + 'Temp',
+            layouts: [
+                {
+                    id: '',
+                    content: 'layoutTemp',
+                    controls: [
+                    ]
+                }
+            ]
+        };
+
+        if(index !== 0){
+            sourceSectionClone.layouts[0].controls
+                .push({
+                    id: uuid(),
+                    content: 'control' + index + 'Temp'
+                });
+        }
+
+        sourceSectionClone.id = uuid();
+        sourceSectionClone.layouts[0].id = uuid();
+
+        model.sections.splice((model.sections.length), 0, sourceSectionClone);
+
+        forceUpdate();
+
+        return{
+
+        };
+    };
+
     const onDragStart = (result) => {
         // console.log('[onDragStart] START');
 
@@ -398,7 +426,6 @@ function ControlPanel3() {
             // console.log('copy CONTROL to SAME or DIFFER LAYOUT');
             MoveControl(result);
         }
-
     };
 
     return (
@@ -433,8 +460,11 @@ function ControlPanel3() {
                                                         {...provided.dragHandleProps}
                                                         isDragging={snapshot.isDragging}
                                                         style={provided.draggableProps.style}
+                                                        onClick={(e) => {
+                                                            AddSection(e, toolIndex);
+                                                        }}
                                                     >
-                                                        [{toolIndex}][{tool.content}]<br/>[{tool.id.substring(0,3) + '..'}]
+                                                        [{tool.content}]<br/>[{tool.id.substring(0,3) + '..'}]
                                                     </Tool>
                                                     {snapshot.isDragging && (
                                                         <ToolClone>
@@ -464,7 +494,7 @@ function ControlPanel3() {
                                     {...provided.droppableProps}
                                     isDraggingOver={snapshot.isDraggingOver}
                                 >
-                                    [{model.formName}][{dropModeSection}][{dropModeLayout}][{GetDropMode('section')}][{GetDropMode('layout')}]
+                                    [{model.formName}]
                                     {model.sections.map((section, sectionIndex) => {
                                         // console.log('[model.sections.map()] section', section);
 
