@@ -1,15 +1,15 @@
-import React, {Fragment} from 'react';
+import React, {Fragment, useState} from 'react';
 import styled from "styled-components";
 
 import uuid from "uuid4";
 import {DragDropContext, Droppable, Draggable} from "react-beautiful-dnd";
+// import {DragDropContext, Droppable, Draggable} from '@hello-pangea/dnd';
 
 // Tool<>Form
 const ToolFormContainer = styled.div`
     display: flex;
     flex-direction:row;
     padding: 0.5rem;
-    width: min-content;
 `;
 // tool
 const ToolContainer = styled.div`
@@ -18,7 +18,6 @@ const ToolContainer = styled.div`
     border: 1px solid;
     margin: 0.5rem;
     padding: 0.5rem;
-    width: min-content;
 `;
 // tool 정렬 : 세로
 const Tool = styled.div`
@@ -28,7 +27,6 @@ const Tool = styled.div`
     background-color: ${(props) => (props.isDragging ? "lightgreen" : "white")};
     margin: 0.5rem;
     padding: 0.5rem;
-    width: min-content;
 `;
 const ToolClone = styled(Tool)`
     ~ div {
@@ -37,14 +35,12 @@ const ToolClone = styled(Tool)`
 `;
 // section 정렬 : 세로
 const FormContainer = styled.div`
-    display: flex;
-    flex-direction:column;
+    // display: flex;
+    // flex-direction:column;
     border: 1px solid;
     background-color: ${(props) => props.isDraggingOver ? "skyblue" : "inherit"};
     margin: 0.5rem;
     padding: 0.5rem;
-    width: min-content;
-    max-width: 900px
 `;
 // layout 정렬 : 가로
 const SectionContainer = styled.div`
@@ -54,17 +50,15 @@ const SectionContainer = styled.div`
     background-color: ${(props) => (props.isDragging) ? "lightgreen" : "white"};
     margin: 0.5rem;
     padding: 0.5rem;
-    width: min-content;
 `;
 // control 정렬 : 세로
 const LayoutContainer = styled.div`
-    display: flex;
-    flex-direction:column;
+    // display: flex;
+    // flex-direction:column;
     border: 1px solid;
     background-color: ${(props) => props.isDraggingOver ? "skyblue" : "white"};
     margin: 0.5rem;
     padding: 0.5rem;
-    width: min-content;
 `;
 //
 const Control = styled.div`
@@ -72,9 +66,6 @@ const Control = styled.div`
     background-color: white;
     margin: 0.5rem;
     padding: 0.5rem;
-    width: min-content;
-    min-width: 150px;
-    max-width: 150px
 `;
 
 const model = {
@@ -148,15 +139,15 @@ const model = {
                     controls: [
                         {
                             id: uuid(),
-                            content: 'control6',
+                            content: 'control4',
                         },
                         {
                             id: uuid(),
-                            content: 'control7',
+                            content: 'control5',
                         },
                         {
                             id: uuid(),
-                            content: 'control8'
+                            content: 'control6'
                         }
                     ]
                 }
@@ -200,6 +191,16 @@ function ControlPanel3() {
     // console.log('[ControlPanel3] START');
     // console.log('[ControlPanel3] model', model);
 
+    const [dropModeSection, setDropModeSection] = useState(false);
+    const [dropModeLayout,  setDropModeLayout]  = useState(false);
+
+    function GetDropMode(type){
+        if(type === 'section')
+            return dropModeSection;
+        else if(type === 'layout')
+            return dropModeLayout;
+    }
+
     const CopySection = (result) => {
         console.log('[CopySection] START');
         const { source, destination } = result;
@@ -212,17 +213,12 @@ function ControlPanel3() {
                     id: '',
                     content: 'layout' + (source.index+1) + 'Temp',
                     controls: [
-                        {
-                            id: '',
-                            content: 'control' + (source.index+1) + 'Temp',
-                        }
                     ]
                 }
             ]
         };
         sourceSectionClone.id = uuid();
         sourceSectionClone.layouts[0].id = uuid();
-        sourceSectionClone.layouts[0].controls[0].id = uuid();
         
         model.sections.splice(destination.index, 0, sourceSectionClone);
 
@@ -345,37 +341,44 @@ function ControlPanel3() {
         };
     };
 
-    let dropModeSection = false;
-    let dropModeLayout = false;
-
     const onDragStart = (result) => {
         // console.log('[onDragStart] START');
+
         const { source } = result;
-        // console.log('[onDragStart] result', result);
         // console.log('[onDragStart] source', source);
 
         if(source.droppableId === 'TOOLS'){
-            dropModeSection = true;
-            dropModeLayout  = false;
+            if(source.index === 0){
+                console.log('[onDragStart] source.index === 0', source.index);
+                setDropModeSection(false);
+                setDropModeLayout(true);
+            }
+            else{
+                console.log('[onDragStart] source.index !== 0', source.index);
+                setDropModeSection(true);
+                setDropModeLayout(false);
+            }
         }
         else if(source.droppableId === 'FORM'){
-            dropModeSection = false;
-            dropModeLayout  = true;
+            setDropModeSection(false);
+            setDropModeLayout(true);
         }
         else {
-            dropModeSection = false;
-            dropModeLayout  = false;
+            setDropModeSection(true);
+            setDropModeLayout(false);
         }
-        // console.log('[onDragStart] dropModeSection', dropModeSection);
-        // console.log('[onDragStart] dropModeLayout', dropModeLayout);
     };
 
     const onDragEnd = (result) => {
         console.log('[onDragEnd] START');
         const { source, destination } = result;
-        console.log('[onDragEnd] result', result);
-        console.log('[onDragEnd] source', source);
-        console.log('[onDragEnd] destination', destination);
+
+        if(!destination){
+            return;
+        }
+        // console.log('[onDragEnd] result', result);
+        // console.log('[onDragEnd] source', source);
+        // console.log('[onDragEnd] destination', destination);
 
         if( source.droppableId === 'TOOLS' && destination.droppableId === 'FORM' ){
             // console.log('copy TOOLS to FORM');
@@ -390,28 +393,28 @@ function ControlPanel3() {
             MoveSection(result);
         }
         else if( source.droppableId !== 'TOOLS' &&
-                ( source.droppableId === destination.droppableId ||
-                  source.droppableId !== destination.droppableId ) ){
+                 ( source.droppableId === destination.droppableId ||
+                   source.droppableId !== destination.droppableId ) ){
             // console.log('copy CONTROL to SAME or DIFFER LAYOUT');
             MoveControl(result);
         }
+
     };
 
     return (
         <Fragment>
             <DragDropContext
                 onDragStart={onDragStart}
-                onDragEnd={onDragEnd}
+                onDragEnd  ={onDragEnd}
             >
                 <ToolFormContainer>
                     <Droppable
                         droppableId={'TOOLS'}
                         isDropDisabled={true}
                     >
-                        { (provided, snapshot) => (
+                        { (provided) => (
                             <ToolContainer
                                 ref={provided.innerRef}
-                                isDraggingOver={snapshot.isDraggingOver}
                             >
                                 { model.tools.map((tool, toolIndex) => {
                                     // console.log('[model.tools.map] toolIndex, tool', toolIndex, tool);
@@ -434,7 +437,9 @@ function ControlPanel3() {
                                                         [{toolIndex}][{tool.content}]<br/>[{tool.id.substring(0,3) + '..'}]
                                                     </Tool>
                                                     {snapshot.isDragging && (
-                                                        <ToolClone>[{toolIndex}][{tool.content}]<br/>[{tool.id.substring(0,3) + '..'}]</ToolClone>
+                                                        <ToolClone>
+                                                            [{toolIndex}][{tool.content}]<br/>[{tool.id.substring(0,3) + '..'}]
+                                                        </ToolClone>
                                                     )}
                                                 </Fragment>
                                             )}
@@ -450,23 +455,26 @@ function ControlPanel3() {
                         isDropDisabled={dropModeSection}
                         direction={'vertical'}
                     >
-                        { (provided, snapshot) => (
-                            <FormContainer
-                                ref={provided.innerRef}
-                                {...provided.droppableProps}
-                                isDraggingOver={snapshot.isDraggingOver}
-                            >
-                                {model.formName}
-                                {model.sections.map((section, sectionIndex) => {
-                                    console.log('[model.sections.map()] section', section);
+                        { (provided, snapshot) => {
+                            console.log('[Droppable1] dropModeSection, dropModeLayout', dropModeSection, dropModeLayout);
 
-                                    return (
-                                        <Fragment key={section.id} >
+                            return(
+                                <FormContainer
+                                    ref={provided.innerRef}
+                                    {...provided.droppableProps}
+                                    isDraggingOver={snapshot.isDraggingOver}
+                                >
+                                    [{model.formName}][{dropModeSection}][{dropModeLayout}][{GetDropMode('section')}][{GetDropMode('layout')}]
+                                    {model.sections.map((section, sectionIndex) => {
+                                        // console.log('[model.sections.map()] section', section);
+
+                                        return (
                                             <Draggable
+                                                key={section.id}
                                                 index={sectionIndex}
                                                 draggableId={section.id}
                                             >
-                                                { (provided, snapshot) => (
+                                                {(provided, snapshot) => (
                                                     <SectionContainer
                                                         {...provided.draggableProps}
                                                         {...provided.dragHandleProps}
@@ -474,7 +482,7 @@ function ControlPanel3() {
                                                         isDragging={snapshot.isDragging}
                                                         style={provided.draggableProps.style}
                                                     >
-                                                        [{sectionIndex}][{section.content}]<br/>[{section.id.substring(0,4) + '..'}]
+                                                        [{section.content}]<br/>[{section.id.substring(0, 4) + '..'}]
 
                                                         {section.layouts.map((layout, layoutIndex) => {
                                                             // console.log('[section.layouts.map()] layout', layout);
@@ -493,17 +501,18 @@ function ControlPanel3() {
                                                                             ref={provided.innerRef}
                                                                             isDraggingOver={snapshot.isDraggingOver}
                                                                         >
-                                                                            [{layoutIndex}][{layout.content}]<br/>[{layout.id.substring(0, 4) + '..'}]
+                                                                            [{layout.content}]<br/>[{layout.id.substring(0, 4) + '..'}]
                                                                             {layout.controls.map((control, controlIndex) => {
                                                                                 // console.log('[layout.controls.map()] control', control);
 
-                                                                                return(
-                                                                                    <Fragment key={controlIndex}>
-                                                                                        <Draggable
-                                                                                            index={controlIndex}
-                                                                                            draggableId={control.id}
-                                                                                        >
-                                                                                            {(provided, snapshot) => (
+                                                                                return (
+                                                                                    <Draggable
+                                                                                        key={control.id}
+                                                                                        index={controlIndex}
+                                                                                        draggableId={control.id}
+                                                                                    >
+                                                                                        {(provided, snapshot) => {
+                                                                                            return (
                                                                                                 <Control
                                                                                                     {...provided.draggableProps}
                                                                                                     {...provided.dragHandleProps}
@@ -511,28 +520,28 @@ function ControlPanel3() {
                                                                                                     isDragging={snapshot.isDragging}
                                                                                                     style={provided.draggableProps.style}
                                                                                                 >
-                                                                                                    [{controlIndex}][{control.content}]<br/>[{control.id.substring(0, 4) + '..'}]
+                                                                                                    [{control.content}]<br/>[{control.id.substring(0, 4) + '..'}]
                                                                                                 </Control>
-                                                                                            )}
-                                                                                        </Draggable>
-                                                                                    </Fragment>
+                                                                                            );
+                                                                                        }}
+                                                                                    </Draggable>
                                                                                 );
                                                                             })}
                                                                             {provided.placeholder}
                                                                         </LayoutContainer>
-                                                                    ) }
+                                                                    )}
                                                                 </Droppable>
                                                             );
-                                                        } ) }
+                                                        })}
                                                     </SectionContainer>
-                                                ) }
+                                                )}
                                             </Draggable>
-                                        </Fragment>
-                                    );
-                                } ) }
-                                {provided.placeholder}
-                            </FormContainer>
-                        )}
+                                        );
+                                    })}
+                                    {provided.placeholder}
+                                </FormContainer>
+                            );
+                        }}
                     </Droppable>
                 </ToolFormContainer>
             </DragDropContext>
